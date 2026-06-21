@@ -1,6 +1,10 @@
 const http = require("http");
 const fs = require("fs");
 
+const queryString = require('querystring')
+
+
+
 http.createServer((req, res) => {
 
     fs.readFile("html/form.html", "utf-8", (error, data) => {
@@ -11,15 +15,35 @@ http.createServer((req, res) => {
             return;
         }
 
-        res.writeHead(200, { "Content-Type": "text/html" });
+        
 
         if (req.url === "/") {
+            res.writeHead(200, { "Content-Type": "text/html" });
             res.write(data);
-        } else if (req.url === "/Submit") {
+            res.end()
+        } else if (req.url === "/Submit" && req.method==='POST') {
+            let dataBody=[];
+            req.on('data',(chunk)=>{
+                dataBody.push(chunk)
+            })
+            req.on('end', ()=>{
+                let rawData = Buffer.concat(dataBody).toString();
+                let readableData= queryString.parse(rawData)
+                console.log(readableData);
+              
+                 res.writeHead(200, { "Content-Type": "text/html" });
+           
             res.write("<h1>Data Submitted</h1>");
+            res.write(`<h2>Name:${readableData.name}</h2>`);
+            res.write(`<h2>Email:${readableData.email}</h2>`);
+               
+             res.end();
+            }) ;
+             
         }
+     
 
-        res.end();
+      
     });
 
 }).listen(1200)
